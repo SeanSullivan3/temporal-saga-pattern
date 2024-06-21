@@ -1,1 +1,4 @@
 # temporal-saga-pattern
+This project is a Temporal implentation of an example saga pattern by Conductor in Java. In this simple saga, a user will book a cab through a ride service in a four step process. First, the booking is created and put in the booking database. Second, a random driver is assigned to the booking and the cab details are put in the cab database. Third, the program will find the user's payment information from the user database and put the transaction information into the payment database. Lastly, the booking will be confirmed and a notifaction will be sent to the driver and user. If at any point in the workflow the application encounters an error, all completed steps will be compsenated for using Temporal's Saga framework.
+
+Full description and running instructions in progress...
