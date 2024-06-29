@@ -1,6 +1,8 @@
 package ride.activities;
 
 import io.temporal.activity.Activity;
+import io.temporal.failure.ApplicationFailure;
+import io.temporal.failure.TemporalFailure;
 import io.temporal.spring.boot.ActivityImpl;
 import org.springframework.stereotype.Component;
 import ride.models.*;
@@ -34,6 +36,7 @@ public class RideActivitiesImpl implements RideActivities {
 
         BookingId id = new BookingId();
         id.setBookingId(booking.getBookingId());
+        System.out.println("Booking created.");
         return id;
     }
 
@@ -45,6 +48,7 @@ public class RideActivitiesImpl implements RideActivities {
             booking.setStatus(Booking.Status.CANCELLED);
             booking.setDriverId(0);
             db.updateBooking(booking);
+            System.out.println("Canceled booking.");
         }
         catch (SQLException ignored) {}
     }
@@ -53,7 +57,7 @@ public class RideActivitiesImpl implements RideActivities {
     public PaymentRequest assignDriver(BookingId id) {
 
         Random rand = new Random();
-        int driverId = rand.nextInt(4) + 1;
+        int driverId = rand.nextInt(3) + 1;
         CabAssignment cabAssignment = new CabAssignment();
         cabAssignment.setBookingId(id.getBookingId());
         cabAssignment.setDriverId(driverId);
@@ -75,6 +79,7 @@ public class RideActivitiesImpl implements RideActivities {
         PaymentRequest request = new PaymentRequest();
         request.setBookingId(id.getBookingId());
         request.setRiderId(booking.getRiderId());
+        System.out.println("Driver " + driverId + " assigned to booking.");
         return request;
     }
 
@@ -82,6 +87,7 @@ public class RideActivitiesImpl implements RideActivities {
     public void cancelAssignment(BookingId id) {
         try {
             db.deactivateAssignment(id.getBookingId());
+            System.out.println("Canceled driver assignment.");
         }
         catch (SQLException ignored) {}
     }
@@ -89,50 +95,77 @@ public class RideActivitiesImpl implements RideActivities {
     @Override
     public Payment makePayment(PaymentRequest request) {
 
-        PaymentMethod paymentMethod = new PaymentMethod();
         Payment payment = new Payment();
         payment.setPaymentId(request.getPaymentId());
         payment.setBookingId(request.getBookingId());
         payment.setAmount(40.0);
         payment.setPaymentMethodId(0);
         payment.setStatus(Payment.Status.PENDING);
-
         try {
-            db.readPaymentMethod(request.getRiderId(), paymentMethod);
             db.insertPayment(payment);
         }
         catch (SQLException e) {
-            payment.setErrorMsg("Payment creation failure");
+            payment.setErrorMsg("Failed to create payment.");
             payment.setStatus(Payment.Status.FAILED);
-            throw Activity.wrap(e);
+            return payment;
+        }
+
+        PaymentMethod paymentMethod = new PaymentMethod();
+        try {
+            db.readPaymentMethod(request.getRiderId(), paymentMethod);
+            payment.setPaymentMethodId(paymentMethod.getId());
+        }
+        catch (SQLException e) {
+            payment.setErrorMsg("Customer doesn't have a payment method added.");
+            payment.setStatus(Payment.Status.FAILED);
+            return payment;
         }
 
         try {
-            if (paymentMethod.getId() > 0) {
-                payment.setPaymentMethodId(paymentMethod.getId());
-                //Some external api call
-                //Assume payment went through
-                payment.setStatus(Payment.Status.SUCCESSFUL);
+            //External api call to make payment. Change the if statement below to true to fail simulate a failure.
+            if (false) {
+                throw ApplicationFailure.newNonRetryableFailure("Payment API Failure", TemporalFailure.class.getName());
             }
-            else {
-                payment.setErrorMsg("Rider doesn't have a payment method added");
-                payment.setStatus(Payment.Status.FAILED);
-            }
+            payment.setErrorMsg("Payment successful.");
+            payment.setStatus(Payment.Status.SUCCESSFUL);
+        }
+        catch (ApplicationFailure e) {
+            payment.setErrorMsg("Customer payment method failed.");
+            payment.setStatus(Payment.Status.FAILED);
+            return payment;
+        }
+
+        payment.setErrorMsg("Payment successful.");
+        payment.setStatus(Payment.Status.SUCCESSFUL);
+
+        try {
             db.updatePayment(payment);
         }
         catch (SQLException e) {
-            throw Activity.wrap(e);
+            payment.setErrorMsg("Failed to update payment.");
+            payment.setStatus(Payment.Status.FAILED);
         }
+
         return payment;
     }
 
     @Override
-    public void cancelPayment(PaymentRequest request) {
-        //External api call to reverse any payment
+    public void cancelPayment(Payment payment) {
+
+        if (payment.getStatus() == Payment.Status.SUCCESSFUL || payment.getErrorMsg().equals("Failed to update payment.")) {
+            //External api call to reverse payment
+            System.out.println("Refunded payment.");
+        }
+        payment.setStatus(Payment.Status.CANCELED);
+        try {
+            db.updatePayment(payment);
+            System.out.println("Canceled payment.");
+        }
+        catch (SQLException ignored) {}
     }
 
     @Override
-    public void notify(BookingId id) {
+    public Booking confirmBooking(BookingId id) {
 
         Booking booking = new Booking();
         try {
@@ -144,13 +177,49 @@ public class RideActivitiesImpl implements RideActivities {
             throw Activity.wrap(e);
         }
 
+        System.out.println("Confirmed booking.");
+        return booking;
+    }
+
+    @Override
+    public void notifyDriver(Booking booking) {
+
         DriverNotificationRequest driverNotif = new DriverNotificationRequest();
-        driverNotif.setBookingId(id.getBookingId());
+        driverNotif.setBookingId(booking.getBookingId());
         driverNotif.setDriverId(booking.getDriverId());
         driverNotif.setPickUp(booking.getPickUpLocation());
         driverNotif.setDropOff(booking.getDropOffLocation());
-        //Notify driver through some api
 
-        //Notify rider through some api
+        Driver driver =  new Driver();
+        try {
+            db.readDriver(booking.getDriverId(), driver);
+        }
+        catch (SQLException e) {
+            throw Activity.wrap(e);
+        }
+
+        //Notify driver through some api
+        System.out.println("Notifying driver " + driver.getName() + " (" + driver.getContact() + ") of confirmed booking...");
+    }
+
+    @Override
+    public void notifyCustomer(Booking booking) {
+
+        CustomerNotificationRequest customerNotif = new CustomerNotificationRequest();
+        customerNotif.setBookingId(booking.getBookingId());
+        customerNotif.setRiderId(booking.getDriverId());
+        customerNotif.setPickUp(booking.getPickUpLocation());
+        customerNotif.setDropOff(booking.getDropOffLocation());
+
+        Rider customer = new Rider();
+        try {
+            db.readRider(booking.getRiderId(), customer);
+        }
+        catch (SQLException e) {
+            throw Activity.wrap(e);
+        }
+
+        //Notify customer through some api
+        System.out.println("Notifying customer " + customer.getName() + " (" + customer.getContact() + ") of confirmed booking...");
     }
 }

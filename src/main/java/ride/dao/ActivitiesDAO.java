@@ -5,6 +5,8 @@ import ride.models.Booking;
 import ride.models.CabAssignment;
 import ride.models.Payment;
 import ride.models.PaymentMethod;
+import ride.models.Driver;
+import ride.models.Rider;
 
 import java.sql.*;
 import java.text.DateFormat;
@@ -158,6 +160,42 @@ public class ActivitiesDAO extends BaseDAO {
             pstmt.setString(3, payment.getStatus().name());
             pstmt.setString(4, payment.getPaymentId());
             pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            throw e;
+        }
+    }
+
+    public void readDriver(int driverId, Driver driver) throws SQLException {
+        String sql = "SELECT name, contact FROM drivers WHERE id = ?";
+
+        try (Connection conn = this.connect(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, driverId);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                driver.setId(driverId);
+                driver.setName(rs.getString("name"));
+                driver.setContact(rs.getString("contact"));
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            throw e;
+        }
+    }
+
+    public void readRider(int riderId, Rider rider) throws SQLException {
+        String sql = "SELECT name, contact FROM riders WHERE id = ?";
+
+        try (Connection conn = this.connect(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, riderId);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                rider.setId(riderId);
+                rider.setName(rs.getString("name"));
+                rider.setContact(rs.getString("contact"));
+            }
+
         } catch (SQLException e) {
             System.out.println(e.getMessage());
             throw e;

@@ -2,10 +2,7 @@ package ride.activities;
 
 import io.temporal.activity.ActivityInterface;
 import io.temporal.activity.ActivityMethod;
-import ride.models.BookingId;
-import ride.models.BookingRequest;
-import ride.models.Payment;
-import ride.models.PaymentRequest;
+import ride.models.*;
 
 @ActivityInterface
 public interface RideActivities {
@@ -26,8 +23,14 @@ public interface RideActivities {
     public Payment makePayment(PaymentRequest request);
 
     @ActivityMethod
-    public void cancelPayment(PaymentRequest request);
+    public void cancelPayment(Payment payment);
 
     @ActivityMethod
-    public void notify(BookingId id);
+    public Booking confirmBooking(BookingId bookingId);
+
+    @ActivityMethod
+    public void notifyDriver(Booking booking);
+
+    @ActivityMethod
+    public void notifyCustomer(Booking booking);
 }

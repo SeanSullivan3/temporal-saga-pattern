@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import ride.workflows.RideWorkflow;
 
-import java.util.Map;
 import java.util.UUID;
 
 @RestController

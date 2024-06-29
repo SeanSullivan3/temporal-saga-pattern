@@ -30,10 +30,11 @@ public class RideWorkflowImpl implements RideWorkflow {
         Saga saga = new Saga(new Saga.Options.Builder().build());
         try {
             //Book a ride
+            System.out.println("Booking requested by rider " + request.getRiderId() + ".\nPick up: " + request.getPickUpLocation() + ".\nDrop off: " + request.getDropOffLocation());
             BookingId bookingId = activities.createBooking(request);
             saga.addCompensation(activities::cancelBooking, bookingId);
 
-            //Assign a random driver
+            //Assign a driver
             saga.addCompensation(activities::cancelAssignment, bookingId);
             PaymentRequest paymentRequest = activities.assignDriver(bookingId);
 
@@ -41,21 +42,25 @@ public class RideWorkflowImpl implements RideWorkflow {
             UUID uuid = UUID.randomUUID();
             String uuidAsString = uuid.toString();
             paymentRequest.setPaymentId(uuidAsString);
-            saga.addCompensation(activities::cancelPayment, paymentRequest);
             Payment payment = activities.makePayment(paymentRequest);
+            saga.addCompensation(activities::cancelPayment, payment);
+            System.out.println(payment.getErrorMsg());
 
-            //Confirm and notify
+
             if (payment.getStatus() == Payment.Status.SUCCESSFUL) {
-                activities.notify(bookingId);
+                //Confirm and notify
+                Booking confirmedBooking = activities.confirmBooking(bookingId);
+                activities.notifyDriver(confirmedBooking);
+                activities.notifyCustomer(confirmedBooking);
             }
             else {
                 saga.compensate();
-                return payment.getErrorMsg();
+                return "Booking failed. Saga compensated.";
             }
         }
         catch (TemporalFailure e) {
             saga.compensate();
-            return "Booking failed.";
+            return "Booking failed. Saga compensated.";
         }
         return "Successful ride.";
     }
