@@ -43,3 +43,7 @@ curl --location 'http://localhost:8080/triggerRideBookingFlow' \
 ### Simulate an error
 
 On line 126 of `RideActivitiesImpl.java`, change the if statement condition to `true` to simulate an error in the customer's payment method. Run the program again and check `http://localhost:8233/` to see the saga compensation.
+
+## Diagram
+
+![Flow Chart](SagaFlowChart.png)
