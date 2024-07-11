@@ -20,7 +20,7 @@ public class BookingServiceController {
     @PostMapping(value = "/triggerRideBookingFlow", produces = "application/json")
     public ResponseEntity<String> triggerRideBookingFlow(@RequestBody BookingRequest bookingRequest) {
 
-        UUID uuid = Workflow.randomUUID();
+        UUID uuid = UUID.randomUUID();
         String uuidAsString = uuid.toString();
         bookingRequest.setBookingId(uuidAsString);
 

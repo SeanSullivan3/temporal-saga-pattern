@@ -28,7 +28,7 @@ public class CabAssignmentService {
         cabAssignment.setActive(true);
 
         if (!cabAssignmentDAO.insertAssignment(cabAssignment)) {
-            log.error("Cab assignment for booking {} failed.", bookingId);
+            log.error("Cab assignment failed for booking with id: {}", bookingId);
             return null;
         }
 
@@ -41,13 +41,13 @@ public class CabAssignmentService {
 
     public static void cancelAssignment(String bookingId) {
         Booking booking = BookingService.getBooking(bookingId);
+        log.error("Cancelling driver assignment for booking with id: {}", bookingId);
 
         if (booking.getBookingId().isEmpty()) {
-            log.error("Booking with id {} not found.", bookingId);
+            log.error("Booking with id: {} not found.", bookingId);
         }
 
         cabAssignmentDAO.deactivateAssignment(bookingId);
-        log.error("Driver assignment canceled");
     }
 
     private static int findDriver() {

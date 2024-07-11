@@ -14,7 +14,7 @@ public class BookingService {
     private static final BookingDAO bookingDAO = new BookingDAO("jdbc:sqlite:cab_saga.db");
 
     public static String createBooking(BookingRequest bookingRequest) {
-        UUID uuid = Workflow.randomUUID();
+        UUID uuid = UUID.randomUUID();
         String uuidAsString = uuid.toString();
 
         Booking booking = new Booking();
@@ -49,16 +49,20 @@ public class BookingService {
         return bookingDAO.updateBooking(booking);
     }
 
-    public static boolean confirmBooking(Booking booking) {
+    public static void confirmBooking(Booking booking) {
         booking.setStatus(Booking.Status.CONFIRMED);
-        log.info("Confirming booking {}", booking.getBookingId());
-        return bookingDAO.updateBooking(booking);
+        if (bookingDAO.updateBooking(booking)) {
+            log.info("Confirmed booking with id: {}", booking.getBookingId());
+        }
+        else {
+            log.error("Booking confirmation failure");
+        }
     }
 
     public static boolean cancelBooking(Booking booking) {
         booking.setStatus(Booking.Status.CANCELLED);
         booking.setDriverId(0);
-        log.info("Cancelling booking {}", booking.getBookingId());
+        log.error("Cancelling booking with id: {}", booking.getBookingId());
         return bookingDAO.updateBooking(booking);
     }
 }

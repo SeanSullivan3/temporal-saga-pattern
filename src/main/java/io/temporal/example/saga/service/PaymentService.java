@@ -15,7 +15,7 @@ public class PaymentService {
     private static final PaymentsDAO paymentsDAO = new PaymentsDAO("jdbc:sqlite:cab_saga.db");
 
     public static Payment createPayment(PaymentRequest paymentRequest) {
-        UUID uuid = Workflow.randomUUID();
+        UUID uuid = UUID.randomUUID();
         String uuidAsString = uuid.toString();
 
         int riderId = paymentRequest.getRiderId();
@@ -31,7 +31,7 @@ public class PaymentService {
         payment.setStatus(Payment.Status.PENDING);
 
         if (!paymentsDAO.insertPayment(payment).isEmpty()) {
-            log.error("Failed to process payment for booking {}", paymentRequest.getBookingId());
+            log.error("Failed to process payment for booking with id: {}", paymentRequest.getBookingId());
             payment.setErrorMsg("Payment creation failure");
             payment.setStatus(Payment.Status.FAILED);
         }
@@ -39,14 +39,15 @@ public class PaymentService {
             payment.setPaymentMethodId(paymentMethod.getId());
             if(makePayment(paymentMethod)) {
                 payment.setStatus(Payment.Status.SUCCESSFUL);
+                log.info("Made payment for rider {} with payment method {}", paymentMethod.getRiderId(), paymentMethod.getDetails());
             }
             else {
-                log.error("Payment method for rider {} unsuccessful, failed to pay for booking {}", riderId, paymentRequest.getBookingId());
+                log.error("Payment method for rider {} unsuccessful, failed to pay for booking with id: {}", riderId, paymentRequest.getBookingId());
                 payment.setErrorMsg("Rider's payment method failed");
                 payment.setStatus(Payment.Status.FAILED);
             }
         } else {
-            log.error("Payment method for rider {} not available, failed to pay for booking {}", riderId, paymentRequest.getBookingId());
+            log.error("Payment method for rider {} not available, failed to pay for booking with id: {}", riderId, paymentRequest.getBookingId());
             payment.setErrorMsg("Rider doesn't have a payment method added");
             payment.setStatus(Payment.Status.FAILED);
         }
@@ -58,13 +59,12 @@ public class PaymentService {
 
     public static void cancelPayment(Payment payment) {
         payment.setStatus(Payment.Status.CANCELED);
+        log.error("Cancelling payment for booking with id: {}", payment.getBookingId());
         paymentsDAO.updatePayment(payment);
-        log.error("Canceled payment with id: {}", payment.getPaymentId());
     }
 
     private static boolean makePayment(PaymentMethod paymentMethod) {
         // Call external Payments API
-        log.error("Making payment for rider {} with payment method {}", paymentMethod.getRiderId(), paymentMethod.getDetails());
         // To simulate a failed payment, change the return value to false
         return true;
     }
