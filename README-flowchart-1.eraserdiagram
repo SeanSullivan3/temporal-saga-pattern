@@ -1,0 +1,36 @@
+flowchart-diagram
+
+// Nodes and groups
+Compensation [color: red] {
+  Cancel Booking
+  Cancel Assignment
+  Cancel Payment
+}
+
+Saga [color: green] {
+  Create Booking
+  Assign Driver
+  Make Payment
+  Confirm Booking
+  Notify Driver
+  Notify Customer
+}
+
+// Relationships
+Start > Create Booking
+Create Booking > Assign Driver
+Assign Driver > Make Payment
+Make Payment > Confirm Booking
+Confirm Booking > Notify Driver
+Confirm Booking > Notify Customer
+Notify Customer > End
+Notify Driver > End
+
+Create Booking > Cancel Booking: Error
+Assign Driver > Cancel Assignment: Error
+Make Payment > Cancel Payment: Error
+Confirm Booking > Cancel Payment: Error
+
+Cancel Payment > Cancel Assignment
+Cancel Assignment > Cancel Booking
+Cancel Booking > End
