@@ -43,9 +43,6 @@ curl --location 'http://localhost:8080/triggerRideBookingFlow' \
 ### Simulate an error
 To simulate the payment failing, and to see the saga compensate, change the return value of the `makePayment()` function in `PaymentService.java` on line 69 from `true` to `false`.
 
-## Diagram
-![Flow Chart](SagaFlowChart.png "")
-
 
 
 
