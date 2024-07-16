@@ -41,8 +41,16 @@ curl --location 'http://localhost:8080/triggerRideBookingFlow' \
 }'
 ```
 ### Simulate an error
-To simulate the payment failing, and to see the saga compensate, change the return value of the `makePayment()` function in `PaymentService.java` on line 69 from `true` to `false`.
-
+To simulate an error, start the workflow with the riderId value set to 3.
+```
+curl --location 'http://localhost:8080/triggerRideBookingFlow' \
+--header 'Content-Type: application/json' \
+--data '{
+  "pickUpLocation": "150 East 52nd Street, New York, NY 10045",
+  "dropOffLocation": "120 West 81st Street, New York, NY 10012",
+  "riderId": 3
+}'
+```
 
 
 
