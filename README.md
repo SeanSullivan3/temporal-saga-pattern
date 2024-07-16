@@ -23,7 +23,7 @@ mvn compile exec:java -Dexec.mainClass="io.temporal.example.saga.workers.SagaWor
 ```
 1. In a third terminal, start the spring boot application.
 ```bash
-mvn compile exec:java -Dexec.mainClass="io.temporal.example.saga.workers.SagaWorker"
+mvn compile exec:java -Dexec.mainClass="io.temporal.example.saga.SagaApplication"
 ```
 1. In a fourth terminal, run the booking creation command below.
     - Check your second terminal for workflow updates.
