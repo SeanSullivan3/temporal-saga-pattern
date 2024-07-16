@@ -4,7 +4,6 @@ import io.temporal.example.saga.dao.PaymentsDAO;
 import io.temporal.example.saga.pojos.Payment;
 import io.temporal.example.saga.pojos.PaymentMethod;
 import io.temporal.example.saga.pojos.PaymentRequest;
-import io.temporal.workflow.Workflow;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;

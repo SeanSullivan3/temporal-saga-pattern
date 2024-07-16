@@ -50,12 +50,12 @@ public class SagaActivitiesImpl implements SagaActivities {
     }
 
     @Override
-    public void notifyDriver(Booking booking) {
-
+    public int notifyDriver(Booking booking) {
+        return booking.getDriverId();
     }
 
     @Override
-    public void notifyCustomer(Booking booking) {
-
+    public int notifyCustomer(Booking booking) {
+        return booking.getRiderId();
     }
 }

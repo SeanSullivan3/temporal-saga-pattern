@@ -4,6 +4,7 @@ import io.temporal.activity.ActivityOptions;
 import io.temporal.example.saga.activities.SagaActivities;
 import io.temporal.example.saga.pojos.BookingRequest;
 import io.temporal.workflow.Async;
+import io.temporal.workflow.Promise;
 import io.temporal.workflow.Saga;
 import io.temporal.workflow.Workflow;
 import io.temporal.example.saga.pojos.*;
@@ -61,8 +62,10 @@ public class SagaWorkflowImpl implements SagaWorkflow {
         }
 
         // Notify customer and driver
-        Async.procedure(activities::notifyCustomer, confirmedBooking);
-        Async.procedure(activities::notifyDriver, confirmedBooking);
+        Promise<Integer> driver = Async.function(activities::notifyCustomer, confirmedBooking);
+        Promise<Integer> rider = Async.function(activities::notifyDriver, confirmedBooking);
+        driver.get();
+        rider.get();
 
         return "Successful ride.";
     }

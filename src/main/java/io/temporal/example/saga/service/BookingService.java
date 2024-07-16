@@ -3,7 +3,6 @@ package io.temporal.example.saga.service;
 import io.temporal.example.saga.dao.BookingDAO;
 import io.temporal.example.saga.pojos.Booking;
 import io.temporal.example.saga.pojos.BookingRequest;
-import io.temporal.workflow.Workflow;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;

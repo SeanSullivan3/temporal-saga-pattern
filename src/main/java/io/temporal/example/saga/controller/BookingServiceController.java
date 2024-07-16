@@ -4,7 +4,6 @@ import io.temporal.client.WorkflowClient;
 import io.temporal.client.WorkflowOptions;
 import io.temporal.example.saga.pojos.BookingRequest;
 import io.temporal.example.saga.workflows.SagaWorkflow;
-import io.temporal.workflow.Workflow;
 import io.temporal.serviceclient.WorkflowServiceStubs;
 
 import org.springframework.http.ResponseEntity;

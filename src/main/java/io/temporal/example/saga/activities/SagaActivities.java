@@ -29,8 +29,8 @@ public interface SagaActivities {
     public Booking confirmBooking(BookingIdRequestPayload bookingId);
 
     @ActivityMethod
-    public void notifyDriver(Booking booking);
+    public int notifyDriver(Booking booking);
 
     @ActivityMethod
-    public void notifyCustomer(Booking booking);
+    public int notifyCustomer(Booking booking);
 }
